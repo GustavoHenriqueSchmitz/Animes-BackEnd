@@ -1,10 +1,13 @@
 {
   "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
+    "sourceMap": true,
+    "strict": true,
+    "lib": ["esnext"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "rootDir": ".",
-    "outDir": "build"
+    "outDir": "dist"
   },
   "include": [
     "src/**/*.ts",
