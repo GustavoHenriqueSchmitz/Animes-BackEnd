@@ -1,22 +1,28 @@
+import { Decimal } from "@prisma/client/runtime";
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { Evaluate } from "../models/evaluation.dto";
+import { evaluateService, getEvaluationService } from "../services/evaluation_services";
 
-const prisma = new PrismaClient();
-
-function getEvaluation(req: Request, res: Response) {
+async function getEvaluation(req: Request, res: Response) {
   const paramId: string = req.params.anime_id;
   const animeId: number = parseInt(paramId);
 
-  const evaluation = prisma.evaluation.findUnique({
-    where: {
-      id: animeId,
-    },
-    select: {
-      evaluation: true,
-    },
-  });
+  const evaluation: { evaluation: Decimal | null } | null =
+    await getEvaluationService(animeId);
 
-  return res.json({ evaluation: evaluation });
+  if (!evaluation) {
+    return res
+      .json({ data: { evaluation: "0.0" }, message: "", err: false })
+      .status(200);
+  }
+
+  return res.json({ data: evaluation, message: "", err: false }).status(200);
+}
+
+async function evaluate(req: Request, res: Response) {
+  const body: Evaluate = req.body;
+
+  await evaluateService(body);
 }
 
 export { getEvaluation };

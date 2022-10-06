@@ -8,7 +8,9 @@ datasource db {
 }
 
 model evaluation {
-  id         Int      @id @default(autoincrement())
-  nome       String   @unique(map: "nome") @db.VarChar(60)
-  evaluation Decimal? @default(0.00) @db.Decimal(3, 2)
+  id         Int     @id
+  anime      String  @unique(map: "anime") @db.VarChar(60)
+  evaluation Decimal @default(0.00) @db.Decimal(4, 2)
+  summed     Decimal @default(0.00) @db.Decimal(65, 2)
+  quantity   Int     @default(0)
 }
