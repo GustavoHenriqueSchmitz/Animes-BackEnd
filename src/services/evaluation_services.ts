@@ -19,7 +19,7 @@ async function getEvaluationService(
   return evaluation;
 }
 
-async function evaluateService(body: Evaluate): Promise<string> {
+async function evaluateService(body: Evaluate): Promise<string | null> {
   try {
     await prisma.evaluation.create({
       data: {
@@ -30,11 +30,11 @@ async function evaluateService(body: Evaluate): Promise<string> {
         quantity: 1,
       },
     });
-    return "Avaliação recebida!";
+    return;
   } catch (err) {
     // Try to update
     try {
-      const evaluation = await prisma.evaluation.findUnique({
+      const evaluationInformations = await prisma.evaluation.findUnique({
         where: {
           id: body.anime_id,
         },
@@ -44,17 +44,21 @@ async function evaluateService(body: Evaluate): Promise<string> {
         },
       });
 
+      const evaluation =
+        Number(evaluationInformations.summed) +
+        body.evaluation / evaluationInformations.quantity;
+
       await prisma.evaluation.update({
         where: {
           id: body.anime_id,
         },
         data: {
-          evaluation: body.evaluation,
-          summed: +body.evaluation,
-          quantity: +1,
+          evaluation: evaluation,
+          summed: Number(evaluationInformations.summed) + body.evaluation,
+          quantity: evaluationInformations.quantity + 1,
         },
       });
-      return "Avaliação recebida!";
+      return;
     } catch (err) {
       return "Ops! Ouve um erro ao tentar salvar sua avaliação!";
     }
