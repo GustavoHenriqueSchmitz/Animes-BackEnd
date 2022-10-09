@@ -1,4 +1,3 @@
-import { Decimal } from "@prisma/client/runtime";
 import { Request, Response } from "express";
 import { Evaluate, Evaluation } from "../models/evaluation.dto";
 import {
@@ -10,7 +9,7 @@ async function getEvaluation(req: Request, res: Response) {
   const paramId: string = req.params.anime_id;
   const animeId: number = parseInt(paramId);
 
-  const evaluation: Evaluation | null = await getEvaluationService(animeId);
+  const evaluation: Evaluation = await getEvaluationService(animeId);
 
   if (!evaluation) {
     return res
@@ -24,14 +23,24 @@ async function getEvaluation(req: Request, res: Response) {
 async function evaluate(req: Request, res: Response) {
   const body: Evaluate = req.body;
 
-  const err = await evaluateService(body);
+  if (body.evaluation > 10.0 || body.evaluation < 0.0) {
+    return res
+      .json({
+        data: null,
+        message: "Invalid rating, try something from 0.00 to 10.00.",
+        err: true,
+      })
+      .status(400);
+  }
+
+  const err: string = await evaluateService(body);
 
   if (err) {
     return res.json({ data: null, message: err, err: true }).status(400);
   }
 
   return res
-    .json({ data: null, message: "Avaliação recebida!", err: false })
+    .json({ data: null, message: "Evaluation Received!", err: false })
     .status(200);
 }
 

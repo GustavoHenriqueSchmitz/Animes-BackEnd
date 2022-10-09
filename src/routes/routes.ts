@@ -1,9 +1,9 @@
-import { Router } from "express";
 import { getEvaluation, evaluate } from "../controllers/evaluation_controller";
+import server from "../main";
 
-const router: Router = Router();
+function initRoutes() {
+  server.router.get("/evaluation/:anime_id", getEvaluation);
+  server.router.post("/evaluate", evaluate);
+}
 
-router.get("/evaluation/:anime_id", getEvaluation);
-router.post("/evaluate", evaluate);
-
-export default router;
+export default initRoutes;

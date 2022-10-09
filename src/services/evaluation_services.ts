@@ -1,13 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime";
 import { Evaluate, Evaluation } from "../models/evaluation.dto";
+import server from "../main";
 
-const prisma = new PrismaClient();
-
-async function getEvaluationService(
-  animeId: number
-): Promise<Evaluation | null> {
-  const evaluation = await prisma.evaluation.findUnique({
+async function getEvaluationService(animeId: number): Promise<Evaluation> {
+  const evaluation = await server.database.evaluation.findUnique({
     where: {
       id: animeId,
     },
@@ -21,7 +16,7 @@ async function getEvaluationService(
 
 async function evaluateService(body: Evaluate): Promise<string | null> {
   try {
-    await prisma.evaluation.create({
+    await server.database.evaluation.create({
       data: {
         id: body.anime_id,
         anime: body.anime_name,
@@ -34,21 +29,22 @@ async function evaluateService(body: Evaluate): Promise<string | null> {
   } catch (err) {
     // Try to update
     try {
-      const evaluationInformations = await prisma.evaluation.findUnique({
-        where: {
-          id: body.anime_id,
-        },
-        select: {
-          summed: true,
-          quantity: true,
-        },
-      });
+      const evaluationInformations =
+        await server.database.evaluation.findUnique({
+          where: {
+            id: body.anime_id,
+          },
+          select: {
+            summed: true,
+            quantity: true,
+          },
+        });
 
-      const evaluation =
-        Number(evaluationInformations.summed) +
-        body.evaluation / evaluationInformations.quantity;
+      const evaluation: number =
+        (Number(evaluationInformations.summed) + body.evaluation) /
+          (evaluationInformations.quantity + 1) || 0;
 
-      await prisma.evaluation.update({
+      await server.database.evaluation.update({
         where: {
           id: body.anime_id,
         },
@@ -60,7 +56,7 @@ async function evaluateService(body: Evaluate): Promise<string | null> {
       });
       return;
     } catch (err) {
-      return "Ops! Ouve um erro ao tentar salvar sua avaliação!";
+      return "Ops! An error occurred while trying to save the review!";
     }
   }
 }

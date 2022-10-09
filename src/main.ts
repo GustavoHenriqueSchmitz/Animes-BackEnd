@@ -1,26 +1,38 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { Express } from "express";
-import router from "./routes/routes";
+import { Router } from "express";
+import initRoutes from "./routes/routes";
 
-const server: { app: Express; serverPort: number } = {
+const server: {
+  app: Express;
+  serverPort: number;
+  router: Router;
+  database: PrismaClient;
+} = {
   app: express(),
   serverPort: 5000,
+  router: Router(),
+  database: new PrismaClient(),
 };
 
-const prisma = new PrismaClient();
+async function initServer() {
+  // Check database
+  await server.database.$connect().catch((err) => {
+    console.log(err);
+  });
 
-// Check database
-prisma.$connect().catch((err) => {
-  console.log(err);
-});
+  // Config application to use json
+  server.app.use(express.json());
 
-// Config application to use json
-server.app.use(express.json());
+  // Define the application routes
+  initRoutes();
+  server.app.use("/api", server.router);
 
-// Define the application routes
-server.app.use("/api", router);
+  server.app.listen(5000, () => {
+    console.log("Servidor inicializado na porta 5000");
+  });
+}
+initServer();
 
-server.app.listen(5000, () => {
-  console.log("Servidor inicializado na porta 5000");
-});
+export default server;
